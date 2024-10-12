@@ -27,7 +27,7 @@ for i in range(steps):
 
 command += ''.join([single_command.format(x=x, y=y) for x, y in positions])
 
-command += single_command.format(x=(center[0]+x), y=center[1])  # close the loop
+command += single_command.format(x=(center[0]+a), y=center[1])  # close the loop
 
 # print(command)
 

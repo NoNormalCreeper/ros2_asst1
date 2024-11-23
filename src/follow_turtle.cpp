@@ -23,6 +23,7 @@ private:
     {
 
         geometry_msgs::msg::TransformStamped tf;     
+        geometry_msgs::msg::Twist twi;
         try
         {
             tf = tf_buffer_->lookupTransform(catcher, target, tf2::TimePointZero);
@@ -41,8 +42,9 @@ private:
 
         auto t = tf.transform;
         auto message = geometry_msgs::msg::Twist();
+        auto fixed_dist = 1;
 
-        if (hypot(t.translation.x, t.translation.y) < 0.1)
+        if (hypot(t.translation.x, t.translation.y) < fixed_dist)
         {
             message.linear.x = 0.0;
             message.angular.z = 0.0;

@@ -41,6 +41,10 @@ target_include_directories(follow PUBLIC
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(follow rclcpp tf2_ros tf2_geometry_msgs geometry_msgs turtlesim)
 
+add_executable(turtle_broadcaster src/turtle_broadcaster.cpp)
+ament_target_dependencies(turtle_broadcaster rclcpp tf2_ros geometry_msgs turtlesim)
+install(TARGETS turtle_broadcaster DESTINATION lib/${PROJECT_NAME})
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

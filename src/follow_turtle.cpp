@@ -23,7 +23,7 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
-    std::string target,catcher;
+    std::string target, catcher;
     bool reach_flag;
 
     // Well, these two variables are not used in the code, but they may help in the task
@@ -37,7 +37,6 @@ private:
         try
         {
             tf = tf_buffer_->lookupTransform(catcher, target, tf2::TimePointZero);
-
         } catch (tf2::TransformException &ex)
         {
             RCLCPP_ERROR(this->get_logger(), "Could not transform %s to %s: %s", catcher.c_str(), target.c_str(), ex.what());
@@ -94,18 +93,18 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "Publishing: linear.x: '%f', angular.z: '%f'", message.linear.x, message.angular.z);
         publisher_->publish(message);
-
     }
-public: 
-    node(std::string target, std::string catcher): Node("follower"), target(target), catcher(catcher)
+
+public:
+    node(std::string target, std::string catcher): Node("follower_" + catcher), target(target), catcher(catcher)
     {
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(100),
             std::bind(&node::timer_callback, this));
-        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>(catcher+"/cmd_vel", 10);
-        RCLCPP_INFO(this->get_logger(), "Hello, world");   
+        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>(catcher + "/cmd_vel", 10);
+        RCLCPP_INFO(this->get_logger(), "Hello, world");
     }
     ~node()
     {
@@ -116,10 +115,15 @@ public:
 class ROS_EVENT_LOOP
 {
 public:
-    ROS_EVENT_LOOP(int argc, char *argv[], std::string target,std::string catcher)
+    ROS_EVENT_LOOP(int argc, char *argv[], std::string target, std::string catcher1, std::string catcher2)
     {
         rclcpp::init(argc, argv);
-        rclcpp::spin(std::make_shared<node>(target,catcher));
+        auto node1 = std::make_shared<node>(target, catcher1);
+        auto node2 = std::make_shared<node>(target, catcher2);
+        rclcpp::executors::SingleThreadedExecutor executor;
+        executor.add_node(node1);
+        executor.add_node(node2);
+        executor.spin();
     }
     ~ROS_EVENT_LOOP()
     {
@@ -129,11 +133,11 @@ public:
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3 )
+    if (argc != 4)
     {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "usage: follow target catcher");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "usage: follow target catcher1 catcher2");
         return 1;
     }
-    ROS_EVENT_LOOP(argc, argv, argv[1], argv[2]);
+    ROS_EVENT_LOOP(argc, argv, argv[1], argv[2], argv[3]);
     return 0;
 }
